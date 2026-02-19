@@ -1,0 +1,2234 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гид по Linux: Полное руководство (2026)</title>
+    <meta name="description" content="Комплексное руководство по Linux: от истории до продвинутых техник">
+    <style>
+        /* --- LXDE / Classic GTK Theme Variables --- */
+        :root {
+            --bg-color: #e8e8e8;
+            --panel-bg: #e4e4e4;
+            --border-color: #a0a0a0;
+            --border-dark: #666666;
+            --highlight-blue: #4a90d9;
+            --highlight-blue-dark: #3a7bc8;
+            --text-color: #222222;
+            --text-muted: #555555;
+            --link-color: #0055aa;
+            --link-hover: #003366;
+            --code-bg: #f5f5f5;
+            --code-border: #cccccc;
+            --code-text: #c41a16;
+            --terminal-bg: #1e1e1e;
+            --terminal-text: #00ff00;
+            --warning-bg: #fff3cd;
+            --warning-border: #ffc107;
+            --tip-bg: #d4edda;
+            --tip-border: #28a745;
+            --font-main: "DejaVu Sans", "Segoe UI", Arial, sans-serif;
+            --font-mono: "DejaVu Sans Mono", "Consolas", "Courier New", monospace;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-dark: rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- Reset & Base --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* --- Main Window Container --- */
+        #app-window {
+            width: 100%;
+            max-width: 1400px;
+            height: 95vh;
+            max-height: 900px;
+            background-color: var(--bg-color);
+            border: 2px solid var(--border-dark);
+            box-shadow: 0 15px 40px var(--shadow-dark), inset 0 1px 0 rgba(255,255,255,0.3);
+            display: flex;
+            flex-direction: column;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        /* --- Title Bar --- */
+        .title-bar {
+            background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 50%, #d0d0d0 51%, #e8e8e8 100%);
+            padding: 8px 12px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px 4px 0 0;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            flex-shrink: 0;
+        }
+
+        .title-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-icon {
+            font-size: 18px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .window-controls button {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);
+            border: 1px solid #999;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .window-controls button:hover {
+            background: linear-gradient(to bottom, #fff, #e0e0e0);
+        }
+
+        .window-controls button.close:hover {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        /* --- Layout: Sidebar + Content --- */
+        .main-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* --- Sidebar Navigation --- */
+        .sidebar {
+            width: 280px;
+            background-color: var(--panel-bg);
+            border-right: 2px solid var(--border-color);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 15px;
+            background: linear-gradient(to bottom, #ececec, #dcdcdc);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            font-size: 13px;
+            font-family: var(--font-main);
+            background: #fff;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--highlight-blue);
+            box-shadow: 0 0 3px rgba(74, 144, 217, 0.3);
+        }
+
+        .nav-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .nav-item:hover {
+            background: linear-gradient(to right, #d0d0d0, #e0e0e0);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(to right, var(--highlight-blue), var(--highlight-blue-dark));
+            color: white;
+            font-weight: bold;
+            box-shadow: inset 2px 0 0 rgba(0,0,0,0.1);
+        }
+
+        .nav-item .icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-header {
+            padding: 12px 15px 6px;
+            font-weight: bold;
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-top: 1px solid #ccc;
+            margin-top: 5px;
+            background: #dadada;
+        }
+
+        .nav-progress {
+            padding: 10px 15px;
+            font-size: 12px;
+            color: #666;
+            background: #f0f0f0;
+            border-top: 1px solid #ccc;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #ccc;
+            border-radius: 3px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--highlight-blue);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* --- Content Area --- */
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background-color: #fff;
+            box-shadow: inset 3px 3px 10px rgba(0,0,0,0.03);
+            scroll-behavior: smooth;
+        }
+
+        /* --- Typography & Content Styles --- */
+        h1 {
+            font-size: 26px;
+            margin-bottom: 20px;
+            color: #222;
+            border-bottom: 2px solid var(--highlight-blue);
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #333;
+            padding-left: 10px;
+            border-left: 4px solid var(--highlight-blue);
+        }
+
+        h3 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #444;
+            font-weight: bold;
+        }
+
+        h4 {
+            font-size: 14px;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.7;
+            font-size: 15px;
+            color: #333;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        strong {
+            color: #222;
+        }
+
+        em {
+            color: #555;
+            font-style: italic;
+        }
+
+        /* --- Code Blocks --- */
+        code {
+            font-family: var(--font-mono);
+            background-color: var(--code-bg);
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+            color: var(--code-text);
+            border: 1px solid var(--code-border);
+        }
+
+        pre {
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            border: 2px solid #333;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        pre code {
+            background: none;
+            border: none;
+            color: inherit;
+            padding: 0;
+        }
+
+        .terminal-prompt {
+            color: #00bfff;
+            font-weight: bold;
+        }
+
+        .terminal-comment {
+            color: #888;
+        }
+
+        /* --- Tables --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: linear-gradient(to bottom, #e8e8e8, #d8d8d8);
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f0f7ff;
+        }
+
+        /* --- Info Boxes --- */
+        .info-box {
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-box.tip {
+            background-color: var(--tip-bg);
+            border-color: var(--tip-border);
+        }
+
+        .info-box.warning {
+            background-color: var(--warning-bg);
+            border-color: var(--warning-border);
+        }
+
+        .info-box.note {
+            background-color: #e7f3ff;
+            border-color: var(--highlight-blue);
+        }
+
+        .info-box-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- Interactive Terminal --- */
+        .interactive-terminal {
+            background: var(--terminal-bg);
+            border: 2px solid #444;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: #333;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27c93f; }
+
+        .terminal-body {
+            padding: 15px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--terminal-text);
+            min-height: 150px;
+        }
+
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .terminal-prompt-text {
+            color: #00bfff;
+            font-weight: bold;
+        }
+
+        .terminal-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .terminal-output {
+            color: #ccc;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+
+        /* --- Philosophy Section --- */
+        .philosophy-box {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .philosophy-box h3 {
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 10px;
+        }
+
+        .philosophy-box p {
+            color: #e0e0e0;
+        }
+
+        .philosophy-box strong {
+            color: #4a90d9;
+        }
+
+        /* --- Sections Visibility --- */
+        .section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Mobile Menu Button --- */
+        .mobile-menu-btn {
+            display: none;
+            background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);
+            border: 1px solid #999;
+            border-radius: 3px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .mobile-menu-btn:hover {
+            background: linear-gradient(to bottom, #fff, #e0e0e0);
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 900px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+            }
+
+            #app-window {
+                height: 100vh;
+                max-height: none;
+                border-radius: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 1000;
+                transform: translateX(-100%);
+                box-shadow: 5px 0 20px rgba(0,0,0,0.3);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 999;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            pre {
+                font-size: 12px;
+                padding: 15px;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px;
+            }
+        }
+
+        /* --- Scrollbar Styling --- */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-left: 1px solid #ddd;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #c1c1c1, #a8a8a8);
+            border: 1px solid #999;
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #d1d1d1, #b8b8b8);
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: #f1f1f1;
+        }
+
+        /* --- Print Styles --- */
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            #app-window {
+                box-shadow: none;
+                border: none;
+                height: auto;
+            }
+
+            .sidebar, .title-bar, .mobile-menu-btn {
+                display: none;
+            }
+
+            .content-area {
+                overflow: visible;
+                padding: 0;
+            }
+
+            .section {
+                display: block !important;
+                page-break-inside: avoid;
+            }
+        }
+
+        /* --- Highlight for Search --- */
+        .search-highlight {
+            background-color: #ffeb3b;
+            padding: 2px 0;
+        }
+
+        /* --- Breadcrumb --- */
+        .breadcrumb {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .breadcrumb span {
+            color: var(--highlight-blue);
+        }
+
+        /* --- Quick Tips Sidebar --- */
+        .quick-tips {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .quick-tips h4 {
+            margin-top: 0;
+            color: var(--highlight-blue);
+        }
+
+        .quick-tips ul {
+            margin-left: 0;
+            list-style: none;
+        }
+
+        .quick-tips li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .quick-tips li::before {
+            content: "💡";
+            position: absolute;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div id="app-window">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-bar-left">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Открыть меню">
+                    ☰ Меню
+                </button>
+                <span class="title-icon">🐧</span>
+                <span>Linux Guide 2026 — Полное руководство</span>
+            </div>
+            <div class="window-controls" role="group" aria-label="Управление окном">
+                <button aria-label="Свернуть">−</button>
+                <button aria-label="Развернуть">□</button>
+                <button class="close" aria-label="Закрыть">×</button>
+            </div>
+        </div>
+
+        <div class="main-body">
+            <!-- Sidebar Navigation -->
+            <nav class="sidebar" id="sidebar" role="navigation" aria-label="Основная навигация">
+                <div class="sidebar-header">
+                    <input 
+                        type="text" 
+                        class="search-box" 
+                        id="searchBox" 
+                        placeholder="🔍 Поиск по руководству..."
+                        aria-label="Поиск по содержанию"
+                    >
+                </div>
+
+                <div class="nav-item active" onclick="showSection('intro')" role="button" tabindex="0" aria-label="Введение">
+                    <span class="icon">📖</span>
+                    <span>Введение</span>
+                </div>
+
+                <div class="nav-header">Основы</div>
+                <div class="nav-item" onclick="showSection('history')" role="button" tabindex="0" aria-label="История Linux">
+                    <span class="icon">📜</span>
+                    <span>История Linux</span>
+                </div>
+                <div class="nav-item" onclick="showSection('philosophy')" role="button" tabindex="0" aria-label="Философия Unix">
+                    <span class="icon">🧠</span>
+                    <span>Философия Unix</span>
+                </div>
+                <div class="nav-item" onclick="showSection('filesystems')" role="button" tabindex="0" aria-label="Файловые системы">
+                    <span class="icon">📁</span>
+                    <span>Файловые системы</span>
+                </div>
+
+                <div class="nav-header">Работа в терминале</div>
+                <div class="nav-item" onclick="showSection('terminal')" role="button" tabindex="0" aria-label="Терминал и команды">
+                    <span class="icon">💻</span>
+                    <span>Терминал и команды</span>
+                </div>
+                <div class="nav-item" onclick="showSection('pipes')" role="button" tabindex="0" aria-label="Конвейеры и перенаправление">
+                    <span class="icon">🔗</span>
+                    <span>Конвейеры (Pipes)</span>
+                </div>
+                <div class="nav-item" onclick="showSection('archives')" role="button" tabindex="0" aria-label="Архивы">
+                    <span class="icon">📦</span>
+                    <span>Архивы</span>
+                </div>
+
+                <div class="nav-header">Графическая среда</div>
+                <div class="nav-item" onclick="showSection('gui')" role="button" tabindex="0" aria-label="Графические окружения">
+                    <span class="icon">🖥️</span>
+                    <span>Среды (DE)</span>
+                </div>
+                <div class="nav-item" onclick="showSection('window-managers')" role="button" tabindex="0" aria-label="Оконные менеджеры">
+                    <span class="icon">🪟</span>
+                    <span>Оконные менеджеры</span>
+                </div>
+                <div class="nav-item" onclick="showSection('x11-wayland')" role="button" tabindex="0" aria-label="X11 и Wayland">
+                    <span class="icon">🔄</span>
+                    <span>X11 vs Wayland</span>
+                </div>
+
+                <div class="nav-header">Экосистема</div>
+                <div class="nav-item" onclick="showSection('unix-family')" role="button" tabindex="0" aria-label="Семейство Unix">
+                    <span class="icon">🌳</span>
+                    <span>Семейство Unix</span>
+                </div>
+                <div class="nav-item" onclick="showSection('bsd-macos')" role="button" tabindex="0" aria-label="BSD и macOS">
+                    <span class="icon">🍎</span>
+                    <span>BSD и macOS</span>
+                </div>
+                <div class="nav-item" onclick="showSection('distributions')" role="button" tabindex="0" aria-label="Дистрибутивы">
+                    <span class="icon">📀</span>
+                    <span>Дистрибутивы 2026</span>
+                </div>
+
+                <div class="nav-header">Продвинутое</div>
+                <div class="nav-item" onclick="showSection('permissions')" role="button" tabindex="0" aria-label="Права доступа">
+                    <span class="icon">🔐</span>
+                    <span>Права доступа</span>
+                </div>
+                <div class="nav-item" onclick="showSection('roadmap')" role="button" tabindex="0" aria-label="Путь изучения">
+                    <span class="icon">🗺️</span>
+                    <span>Путь изучения</span>
+                </div>
+
+                <div class="nav-progress">
+                    <div>Прогресс изучения</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div style="margin-top: 5px; text-align: right;">
+                        <span id="progressPercent">0</span>%
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="content-area" id="contentArea" role="main">
+                
+                <!-- SECTION: INTRO -->
+                <div id="intro" class="section active">
+                    <div class="breadcrumb">Главная / <span>Введение</span></div>
+                    <h1>🐧 Добро пожаловать в мир Linux</h1>
+                    
+                    <p>Это комплексное руководство покрывает всё: от истории создания Linux до продвинутых техник работы в терминале. Здесь вы найдёте не только сухую теорию, но и практические примеры, советы и рекомендации, которые помогут вам стать уверенным пользователем.</p>
+
+                    <div class="info-box note">
+                        <div class="info-box-title">📌 О этом руководстве</div>
+                        <p>Материал структурирован от простого к сложному. Рекомендуется проходить разделы последовательно, особенно если вы новичок. Каждый раздел содержит практические примеры для самостоятельного выполнения.</p>
+                    </div>
+
+                    <div class="philosophy-box">
+                        <h3>💭 Почему Linux?</h3>
+                        <p>В мире, где операционные системы становятся всё более «закрытыми садами», Linux остаётся последним бастионом <strong>цифрового суверенитета</strong>. Когда вы работаете в терминале, вы не просите систему выполнить вашу просьбу — вы отдаёте приказ. Это чувство прямого контроля над «железом» — то, что делает Linux уникальным.</p>
+                    </div>
+
+                    <div class="quick-tips">
+                        <h4>🚀 Быстрый старт</h4>
+                        <ul>
+                            <li>Установите Linux на виртуальную машину для безопасного обучения</li>
+                            <li>Не бойтесь экспериментировать — система создана для этого</li>
+                            <li>Используйте <code>man [команда]</code> для получения справки</li>
+                            <li>Сохраняйте важные команды в файл для быстрого доступа</li>
+                        </ul>
+                    </div>
+
+                    <h2>Как пользоваться этим руководством</h2>
+                    <ol>
+                        <li><strong>Навигация:</strong> Используйте левую панель для перехода между разделами</li>
+                        <li><strong>Поиск:</strong> Введите ключевое слово в поле поиска для быстрого нахождения информации</li>
+                        <li><strong>Практика:</strong> Все примеры в терминале можно повторить на своей системе</li>
+                        <li><strong>Прогресс:</strong> Отмечайте пройденные разделы в панели прогресса</li>
+                    </ol>
+                </div>
+
+                <!-- SECTION: HISTORY -->
+                <div id="history" class="section">
+                    <div class="breadcrumb">Главная / Основы / <span>История Linux</span></div>
+                    <h1>📜 История Linux</h1>
+                    
+                    <h2>Происхождение и создание</h2>
+                    <p>Linux — это операционная система с открытым исходным кодом, ядро которой было создано <strong>Линусом Торвальдсом</strong> в 1991 году. Будучи студентом Хельсинкского университета, Торвальдс начал писать ядро как хобби-проект, желая создать систему, похожую на MINIX, но свободную от её ограничений.</p>
+
+                    <div class="info-box note">
+                        <div class="info-box-title">📅 Ключевая дата</div>
+                        <p>25 августа 1991 года — Линус Торвальдс опубликовал первое сообщение в группе новостей comp.os.minix о своём проекте.</p>
+                    </div>
+
+                    <h2>GNU/Linux: Почему два имени?</h2>
+                    <p>Важно понимать различие между <strong>Linux</strong> и <strong>GNU/Linux</strong>:</p>
+                    <ul>
+                        <li><strong>Linux</strong> — это только ядро операционной системы (движок автомобиля)</li>
+                        <li><strong>GNU</strong> — это набор утилит и программ, которые делают систему usable (кузов, колёса, руль)</li>
+                        <li><strong>GNU/Linux</strong> — полная операционная система, сочетающая ядро Linux с утилитами GNU</li>
+                    </ul>
+
+                    <div class="info-box warning">
+                        <div class="info-box-title">⚠️ Частая ошибка</div>
+                        <p>Многие называют всю систему просто "Linux", но технически правильнее говорить "GNU/Linux", так как без утилит GNU (компилятор GCC, оболочка Bash, базовые команды) ядро было бы бесполезно для пользователя.</p>
+                    </div>
+
+                    <h2>Эволюция использования</h2>
+                    <table>
+                        <tr>
+                            <th>Период</th>
+                            <th>Основное применение</th>
+                            <th>Ключевые события</th>
+                        </tr>
+                        <tr>
+                            <td>1991-1995</td>
+                            <td>Хобби, образование</td>
+                            <td>Первые дистрибутивы (Slackware, Debian)</td>
+                        </tr>
+                        <tr>
+                            <td>1996-2000</td>
+                            <td>Серверы</td>
+                            <td>Apache + Linux доминируют в вебе</td>
+                        </tr>
+                        <tr>
+                            <td>2001-2010</td>
+                            <td>Корпоративный сектор</td>
+                            <td>Red Hat Enterprise, Ubuntu Desktop</td>
+                        </tr>
+                        <tr>
+                            <td>2011-настоящее</td>
+                            <td>Везде</td>
+                            <td>Android, облака, суперкомпьютеры, IoT</td>
+                        </tr>
+                    </table>
+
+                    <div class="philosophy-box">
+                        <h3>🏆 Современные достижения</h3>
+                        <p><strong>100%</strong> суперкомпьютеров из TOP500 работают на Linux. <strong>90%</strong> облачных серверов используют Linux. <strong>Android</strong> (на базе ядра Linux) — самая популярная ОС в мире с миллиардами устройств.</p>
+                    </div>
+                </div>
+
+                <!-- SECTION: PHILOSOPHY -->
+                <div id="philosophy" class="section">
+                    <div class="breadcrumb">Главная / Основы / <span>Философия Unix</span></div>
+                    <h1>🧠 Философия Unix</h1>
+                    
+                    <p>Философия Unix — это набор культурных норм и подходов к разработке программного обеспечения, которые возникли в Bell Labs в 1970-х годах. Эти принципы лежат в основе Linux и определяют, как создаются инструменты для этой системы.</p>
+
+                    <h2>Основные принципы</h2>
+                    <ol>
+                        <li><strong>Делай одну вещь, но делай её хорошо</strong> — каждая программа должна решать одну задачу</li>
+                        <li><strong>Программы должны работать вместе</strong> — возможность комбинирования через конвейеры</li>
+                        <li><strong>Текстовые данные — универсальный интерфейс</strong> — текст легко обрабатывать и передавать</li>
+                        <li><strong>Избегай захвата пользователя</strong> — программа не должна удерживать пользователя в своём интерфейсе</li>
+                        <li><strong>Доверяй программисту</strong> — давай возможность делать опасные вещи, если он этого хочет</li>
+                    </ol>
+
+                    <div class="info-box tip">
+                        <div class="info-box-title">💡 Практическое применение</div>
+                        <p>Вместо создания одного монолитного приложения, которое делает всё (редактирование, поиск, сортировка), Unix-подход предлагает создать отдельные инструменты для каждой задачи и соединить их вместе.</p>
+                    </div>
+
+                    <h2>Пример философии в действии</h2>
+                    <p>Задача: Найти 5 самых частых слов в файле</p>
+                    <pre><code><span class="terminal-comment"># Вместо одной сложной программы используем конвейер:</span>
+cat document.txt | tr ' ' '\n' | sort | uniq -c | sort -rn | head -5</code></pre>
+                    <ul>
+                        <li><code>cat</code> — читает файл (одна задача)</li>
+                        <li><code>tr</code> — заменяет пробелы на переносы строк (одна задача)</li>
+                        <li><code>sort</code> — сортирует слова (одна задача)</li>
+                        <li><code>uniq -c</code> — подсчитывает повторения (одна задача)</li>
+                        <li><code>sort -rn</code> — сортирует по количеству (одна задача)</li>
+                        <li><code>head -5</code> — показывает первые 5 строк (одна задача)</li>
+                    </ul>
+                </div>
+
+                <!-- SECTION: FILESYSTEMS -->
+                <div id="filesystems" class="section">
+                    <div class="breadcrumb">Главная / Основы / <span>Файловые системы</span></div>
+                    <h1>📁 Файловые системы Linux</h1>
+                    
+                    <p>Файловая система (ФС) — это способ организации, хранения и именования данных на носителях. В Linux ФС — это не просто формат диска, а фундаментальная часть архитектуры системы.</p>
+
+                    <h2>Иерархия файловой системы (FHS)</h2>
+                    <p>В отличие от Windows с дисками C:, D:, Linux использует единое дерево каталогов:</p>
+                    
+                    <table>
+                        <tr>
+                            <th>Каталог</th>
+                            <th>Назначение</th>
+                            <th>Аналог в Windows</th>
+                        </tr>
+                        <tr>
+                            <td><code>/</code></td>
+                            <td>Корень файловой системы</td>
+                            <td>Мой компьютер</td>
+                        </tr>
+                        <tr>
+                            <td><code>/home</code></td>
+                            <td>Домашние директории пользователей</td>
+                            <td>C:\Users</td>
+                        </tr>
+                        <tr>
+                            <td><code>/etc</code></td>
+                            <td>Конфигурационные файлы системы</td>
+                            <td>Реестр + Program Files</td>
+                        </tr>
+                        <tr>
+                            <td><code>/var</code></td>
+                            <td>Переменные данные (логи, кэш)</td>
+                            <td>C:\Windows\Temp</td>
+                        </tr>
+                        <tr>
+                            <td><code>/usr</code></td>
+                            <td>Пользовательские программы</td>
+                            <td>C:\Program Files</td>
+                        </tr>
+                        <tr>
+                            <td><code>/bin</code></td>
+                            <td>Основные исполняемые файлы</td>
+                            <td>C:\Windows\System32</td>
+                        </tr>
+                    </table>
+
+                    <h2>Исторические ФС</h2>
+                    <ul>
+                        <li><strong>ext (1992)</strong> — Первая ФС для Linux. Сейчас устарела.</li>
+                        <li><strong>ext2 (1993)</strong> — Классическая ФС без журналирования. Быстрая, но при сбое питания данные могли быть потеряны.</li>
+                        <li><strong>ReiserFS (2001)</strong> — Популярная в начале 2000-х, отличалась высокой скоростью работы с мелкими файлами.</li>
+                    </ul>
+
+                    <h2>Современные ФС</h2>
+                    <table>
+                        <tr>
+                            <th>ФС</th>
+                            <th>Описание</th>
+                            <th>Рекомендация</th>
+                        </tr>
+                        <tr>
+                            <td><strong>ext4</strong></td>
+                            <td>Стандарт де-факто. Надёжная, с журналированием, поддерживает до 1 ЭБ данных.</td>
+                            <td>✅ Для большинства пользователей</td>
+                        </tr>
+                        <tr>
+                            <td><strong>XFS</strong></td>
+                            <td>Высокопроизводительная, отлично масштабируется. Любит большие файлы.</td>
+                            <td>✅ Для серверов и медиа</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Btrfs</strong></td>
+                            <td>Снапшоты, сжатие на лету, проверка контрольных сумм. Copy-on-Write.</td>
+                            <td>⚠️ Для продвинутых пользователей</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ZFS</strong></td>
+                            <td>Мощнейшая ФС. Лучшая защита данных, но сложна в лицензировании.</td>
+                            <td>⚠️ Для корпоративных серверов</td>
+                        </tr>
+                    </table>
+
+                    <div class="info-box note">
+                        <div class="info-box-title">🔍 Что такое журналирование?</div>
+                        <p>Представьте, что вы пишете книгу. Журналирование — это когда вы сначала записываете план главы в черновик (журнал), и только потом пишете саму главу. Если свет погаснет, вы не потеряете структуру книги. Без журналирования сбой питания мог превратить файл в кашу из байтов.</p>
+                    </div>
+
+                    <div class="info-box tip">
+                        <div class="info-box-title">💡 Copy-on-Write (CoW)</div>
+                        <p>Технология в Btrfs и ZFS. При изменении файла система не перезаписывает старые данные, а пишет новые в другое место, а затем меняет указатель. Это позволяет делать мгновенные снимки системы без потери производительности.</p>
+                    </div>
+                </div>
+
+                <!-- SECTION: TERMINAL -->
+                <div id="terminal" class="section">
+                    <div class="breadcrumb">Главная / Терминал / <span>Команды</span></div>
+                    <h1>💻 Терминал и базовые команды</h1>
+                    
+                    <p>Терминал — это текстовый интерфейс для взаимодействия с операционной системой. Несмотря на наличие графических интерфейсов, терминал остаётся самым мощным инструментом администратора.</p>
+
+                    <h2>Навигация</h2>
+                    <table>
+                        <tr>
+                            <th>Команда</th>
+                            <th>Описание</th>
+                            <th>Пример</th>
+                        </tr>
+                        <tr>
+                            <td><code>pwd</code></td>
+                            <td>Показать текущий путь</td>
+                            <td><code>pwd</code> → <code>/home/user</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>ls</code></td>
+                            <td>Список файлов</td>
+                            <td><code>ls -la</code> (все файлы, подробно)</td>
+                        </tr>
+                        <tr>
+                            <td><code>cd</code></td>
+                            <td>Сменить директорию</td>
+                            <td><code>cd /etc</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>mkdir</code></td>
+                            <td>Создать папку</td>
+                            <td><code>mkdir new_folder</code></td>
+                        </tr>
+                    </table>
+
+                    <h2>Работа с файлами</h2>
+                    <table>
+                        <tr>
+                            <th>Команда</th>
+                            <th>Описание</th>
+                            <th>Пример</th>
+                        </tr>
+                        <tr>
+                            <td><code>cp</code></td>
+                            <td>Копировать</td>
+                            <td><code>cp file.txt backup.txt</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>mv</code></td>
+                            <td>Переместить/переименовать</td>
+                            <td><code>mv old.txt new.txt</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>rm</code></td>
+                            <td>Удалить</td>
+                            <td><code>rm file.txt</code> ⚠️</td>
+                        </tr>
+                        <tr>
+                            <td><code>cat</code></td>
+                            <td>Показать содержимое</td>
+                            <td><code>cat file.txt</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>less</code></td>
+                            <td>Постраничный просмотр</td>
+                            <td><code>less large_file.log</code></td>
+                        </tr>
+                    </table>
+
+                    <div class="info-box warning">
+                        <div class="info-box-title">⚠️ Осторожно с rm!</div>
+                        <p>Команда <code>rm</code> удаляет файлы без возможности восстановления. Команда <code>rm -rf /</code> может уничтожить всю систему. Всегда проверяйте путь перед удалением!</p>
+                    </div>
+
+                    <h2>Интерактивный терминал</h2>
+                    <div class="interactive-terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot red"></div>
+                            <div class="terminal-dot yellow"></div>
+                            <div class="terminal-dot green"></div>
+                            <span style="margin-left: 10px; color: #ccc; font-size: 12px;">Terminal Simulator</span>
+                        </div>
+                        <div class="terminal-body" id="terminalBody">
+                            <div class="terminal-output">Добро пожаловать в Linux Terminal Simulator!
+Попробуйте команды: ls, pwd, cd, cat, echo
+                            </div>
+                            <div class="terminal-input-line">
+                                <span class="terminal-prompt-text">user@linux:~$</span>
+                                <input type="text" class="terminal-input" id="terminalInput" placeholder="Введите команду..." autofocus>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quick-tips">
+                        <h4>🎯 Горячие клавиши терминала</h4>
+                        <ul>
+                            <li><code>Ctrl+C</code> — Прервать текущую команду</li>
+                            <li><code>Ctrl+Z</code> — Приостановить процесс</li>
+                            <li><code>Ctrl+R</code> — Поиск в истории команд</li>
+                            <li><code>Tab</code> — Автодополнение</li>
+                            <li><code>Ctrl+L</code> — Очистить экран</li>
+                            <li><code>Ctrl+A / Ctrl+E</code> — Начало / конец строки</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- SECTION: PIPES -->
+                <div id="pipes" class="section">
+                    <div class="breadcrumb">Главная / Терминал / <span>Конвейеры</span></div>
+                    <h1>🔗 Конвейеры и перенаправление</h1>
+                    
+                    <p>Конвейеры (pipes) — это одна из самых мощных возможностей Unix-систем. Они позволяют соединять вывод одной программы с вводом другой, создавая сложные цепочки обработки данных.</p>
+
+                    <h2>Символы перенаправления</h2>
+                    <table>
+                        <tr>
+                            <th>Символ</th>
+                            <th>Назначение</th>
+                            <th>Пример</th>
+                        </tr>
+                        <tr>
+                            <td><code>|</code></td>
+                            <td>Конвейер (pipe)</td>
+                            <td><code>ls | grep txt</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>&gt;</code></td>
+                            <td>Перенаправление вывода</td>
+                            <td><code>echo "text" &gt; file.txt</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>&gt;&gt;</code></td>
+                            <td>Добавить в конец файла</td>
+                            <td><code>echo "more" &gt;&gt; file.txt</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;</code></td>
+                            <td>Перенаправление ввода</td>
+                            <td><code>sort &lt; input.txt</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>2&gt;</code></td>
+                            <td>Перенаправление ошибок</td>
+                            <td><code>command 2&gt; errors.log</code></td>
+                        </tr>
+                    </table>
+
+                    <h2>Практические примеры конвейеров</h2>
+                    
+                    <h3>1. Поиск файлов по размеру</h3>
+                    <pre><code>find /home -type f -size +100M | sort -rh | head -10</code></pre>
+                    <p>Найти файлы больше 100МБ, отсортировать по размеру, показать 10 крупнейших.</p>
+
+                    <h3>2. Анализ логов</h3>
+                    <pre><code>cat /var/log/syslog | grep "error" | wc -l</code></pre>
+                    <p>Посчитать количество строк с "error" в системном логе.</p>
+
+                    <h3>3. Мониторинг процессов</h3>
+                    <pre><code>ps aux | grep python | grep -v grep</code></pre>
+                    <p>Найти все процессы Python, исключив саму команду grep.</p>
+
+                    <h3>4. Сложный анализ текста</h3>
+                    <pre><code>cat document.txt | tr '[:upper:]' '[:lower:]' | tr -cs '[:alpha:]' '\n' | sort | uniq -c | sort -rn | head -20</code></pre>
+                    <p>Показать 20 самых частых слов в документе (игнорируя регистр).</p>
+
+                    <div class="info-box tip">
+                        <div class="info-box-title">💡 Философия в действии</div>
+                        <p>Обратите внимание: каждая команда в конвейере делает одну вещь. <code>tr</code> только заменяет символы, <code>sort</code> только сортирует, <code>uniq</code> только убирает дубликаты. Но вместе они решают сложную задачу!</p>
+                    </div>
+
+                    <h2>Полезные команды для конвейеров</h2>
+                    <ul>
+                        <li><code>grep</code> — поиск текста по шаблону</li>
+                        <li><code>awk</code> — обработка столбцов текста</li>
+                        <li><code>sed</code> — потоковый редактор текста</li>
+                        <li><code>cut</code> — вырезать части строк</li>
+                        <li><code>sort</code> — сортировка строк</li>
+                        <li><code>uniq</code> — убрать дубликаты</li>
+                        <li><code>wc</code> — подсчёт строк, слов, символов</li>
+                        <li><code>head / tail</code> — первые/последние строки</li>
+                    </ul>
+                </div>
+
+                <!-- SECTION: ARCHIVES -->
+                <div id="archives" class="section">
+                    <div class="breadcrumb">Главная / Терминал / <span>Архивы</span></div>
+                    <h1>📦 Работа с архивами</h1>
+                    
+                    <p>В Linux часто встречаются архивы с расширением <code>.tar.gz</code> или <code>.tar.bz2</code>. Это "тарболы" — файлы, сначала упакованные утилитой <code>tar</code>, а затем сжатые.</p>
+
+                    <h2>Понимание расширений</h2>
+                    <table>
+                        <tr>
+                            <th>Расширение</th>
+                            <th>Описание</th>
+                            <th>Команда</th>
+                        </tr>
+                        <tr>
+                            <td><code>.tar</code></td>
+                            <td>Только упаковка (без сжатия)</td>
+                            <td><code>tar -cvf</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>.tar.gz</code></td>
+                            <td>tar + gzip сжатие</td>
+                            <td><code>tar -czvf</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>.tar.bz2</code></td>
+                            <td>tar + bzip2 сжатие (лучше)</td>
+                            <td><code>tar -cjvf</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>.zip</code></td>
+                            <td>ZIP архив</td>
+                            <td><code>zip / unzip</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>.rar</code></td>
+                            <td>RAR архив</td>
+                            <td><code>rar / unrar</code></td>
+                        </tr>
+                    </table>
+
+                    <h2>Основные команды</h2>
+                    
+                    <h3>Создание архива</h3>
+                    <pre><code><span class="terminal-comment"># Создать tar.gz архив из папки</span>
+tar -czvf archive.tar.gz /path/to/folder
+
+<span class="terminal-comment"># Создать tar.bz2 архив (лучшее сжатие)</span>
+tar -cjvf archive.tar.bz2 /path/to/folder</code></pre>
+
+                    <h3>Извлечение архива</h3>
+                    <pre><code><span class="terminal-comment"># Распаковать tar.gz</span>
+tar -xzvf archive.tar.gz
+
+<span class="terminal-comment"># Распаковать tar.bz2</span>
+tar -xjvf archive.tar.bz2
+
+<span class="terminal-comment"># Распаковать zip</span>
+unzip archive.zip
+
+<span class="terminal-comment"># Распаковать rar</span>
+unrar x archive.rar</code></pre>
+
+                    <h3>Просмотр содержимого</h3>
+                    <pre><code><span class="terminal-comment"># Показать файлы в архиве без распаковки</span>
+tar -tzvf archive.tar.gz</code></pre>
+
+                    <div class="info-box note">
+                        <div class="info-box-title">📝 Флаги tar</div>
+                        <ul>
+                            <li><code>c</code> — create (создать)</li>
+                            <li><code>x</code> — extract (извлечь)</li>
+                            <li><code>t</code> — table of contents (содержимое)</li>
+                            <li><code>z</code> — gzip</li>
+                            <li><code>j</code> — bzip2</li>
+                            <li><code>v</code> — verbose (показывать процесс)</li>
+                            <li><code>f</code> — file (указать имя файла)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- SECTION: GUI (Desktop Environments) -->
+                <div id="gui" class="section">
+                    <div class="breadcrumb">Главная / Графика / <span>Среды рабочего стола</span></div>
+                    <h1>🖥️ Среды рабочего стола (Desktop Environments)</h1>
+                    
+                    <h2>Что такое Desktop Environment (DE)?</h2>
+                    <p>Графическое окружение — это совокупность программ, обеспечивающих графический интерфейс пользователя. Оно включает:</p>
+                    <ul>
+                        <li>Панель задач и меню приложений</li>
+                        <li>Файловый менеджер</li>
+                        <li>Дисплей-менеджер (экран входа)</li>
+                        <li>Набор стандартных приложений</li>
+                        <li>Оконный менеджер</li>
+                    </ul>
+
+                    <h2>Популярные окружения (2026)</h2>
+                    <table>
+                        <tr>
+                            <th>Среда</th>
+                            <th>Краткое описание</th>
+                            <th>Сценарии использования</th>
+                        </tr>
+                        <tr>
+                            <td><strong>GNOME</strong></td>
+                            <td>Современная, минималистичная среда, фокусирующаяся на чистоте. Версия 49 полностью отказалась от X11 в пользу Wayland.</td>
+                            <td>Рабочие станции, где важен простор. Стандарт для Fedora, Ubuntu, RHEL.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>KDE Plasma</strong></td>
+                            <td>Невероятно гибкая и настраиваемая среда с классическим видом. Версия 6.5 сочетает стабильность и кастомизацию.</td>
+                            <td>Для пользователей, которые хотят настроить каждую деталь интерфейса под себя.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cinnamon</strong></td>
+                            <td>Традиционная среда с классической панелью и меню "Пуск". Обеспечивает знакомый опыт.</td>
+                            <td>Лучший выбор для мигрантов с Windows, желающих привычный интерфейс.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>COSMIC</strong></td>
+                            <td>Новая среда от System76 на Rust. Высокая производительность и безопасность.</td>
+                            <td>Разработчики и энтузиасты, желающие испытать передовые технологии (Pop!_OS).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>XFCE</strong></td>
+                            <td>Легковесная, но полнофункциональная среда. Потребляет мало ресурсов.</td>
+                            <td>Старые компьютеры или пользователи, ценящие скорость выше эффектов.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>MATE</strong></td>
+                            <td>Продолжение GNOME 2. Классический, традиционный интерфейс.</td>
+                            <td>Для тех, кто скучает по старому GNOME 2 или ищет стабильность.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LXQt</strong></td>
+                            <td>Современная легковесная среда на Qt. Наследница LXDE.</td>
+                            <td>Очень старые ПК или потребность в сверхбыстрой работе без излишеств.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pantheon</strong></td>
+                            <td>Элегантная и простая среда для elementary OS. Строгий дизайн.</td>
+                            <td>Пользователи, ценящие минимализм и эстетику в стиле macOS.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Budgie</strong></td>
+                            <td>Современная среда, ориентированная на простоту. Интегрируется со стеком GNOME.</td>
+                            <td>Для тех, кому нравится простота GNOME, но хочется классической панели.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Deepin (DDE)</strong></td>
+                            <td>Одна из самых визуально впечатляющих сред с элегантными приложениями.</td>
+                            <td>Для пользователей, для которых внешний вид имеет первостепенное значение.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LXDE</strong></td>
+                            <td>Классическая легковесная среда. Развитие сместилось в сторону LXQt.</td>
+                            <td>Максимальная экономия ресурсов на очень старом оборудовании.</td>
+                        </tr>
+                    </table>
+
+                    <h2>Терминальные эмуляторы</h2>
+                    <ul>
+                        <li><strong>Kitty</strong> — GPU-ускоренный, быстрый, поддерживает лигатуры и изображения</li>
+                        <li><strong>GNOME Terminal</strong> — Стандарт для GNOME, простой и функциональный</li>
+                        <li><strong>Konsole</strong> — Мощный терминал для KDE</li>
+                        <li><strong>Alacritty</strong> — Минималистичный, сверхбыстрый (Rust)</li>
+                        <li><strong>WezTerm</strong> — Современный, с Lua-скриптингом</li>
+                    </ul>
+
+                    <div class="info-box tip">
+                        <div class="info-box-title">💡 Почему стиль LXDE?</div>
+                        <p>Этот сайт стилизован под LXDE не просто так. LXDE символизирует философию эффективности — в эпоху, когда простой текстовый редактор потребляет 500 МБ RAM, лёгкий интерфейс напоминает: ПО должно служить пользователю, а не пожирать ресурсы.</p>
+                    </div>
+                </div>
+
+                <!-- SECTION: WINDOW MANAGERS -->
+                <div id="window-managers" class="section">
+                    <div class="breadcrumb">Главная / Графика / <span>Оконные менеджеры</span></div>
+                    <h1>🪟 Оконные менеджеры (Window Managers)</h1>
+                    
+                    <div class="philosophy-box">
+                        <h3>🤔 Что такое Оконный Менеджер (WM)?</h3>
+                        <p>Оконный менеджер — это системное программное обеспечение, которое отвечает за размещение и внешний вид окон приложений в графической пользовательской среде.</p>
+                        <p><strong>Главное отличие от DE:</strong> Если Desktop Environment (как KDE или GNOME) — это «полностью оборудованная кухня» (есть плита, холодильник, посуда, декор), то Оконный Менеджер — это просто «плита и холодильник». Он управляет окнами, но не предоставляет панели задач, меню «Пуск», настроек системы или файлового менеджера «из коробки». Всё это нужно доустанавливать отдельно.</p>
+                    </div>
+
+                    <h2>Зачем использовать WM?</h2>
+                    <ul>
+                        <li><strong>Производительность:</strong> WM потребляют минимум оперативной памяти (часто &lt;100 МБ) и ресурсов CPU.</li>
+                        <li><strong>Контроль:</strong> Полная кастомизация поведения окон через конфиги.</li>
+                        <li><strong>Эффективность:</strong> Плиточные менеджеры (Tiling WM) позволяют работать исключительно с клавиатуры, не трогая мышь.</li>
+                        <li><strong>Эстетика:</strong> Возможность создать уникальный, минималистичный интерфейс (как в фильмах про хакеров).</li>
+                    </ul>
+
+                    <h2>Популярные оконные менеджеры</h2>
+                    <table>
+                        <tr>
+                            <th>WM</th>
+                            <th>Тип</th>
+                            <th>Краткое описание</th>
+                            <th>Сценарии</th>
+                        </tr>
+                        <tr>
+                            <td><strong>i3</strong></td>
+                            <td>Плиточный (Tiling)</td>
+                            <td>Самый популярный WM. Управляется с клавиатуры, конфиг через текстовый файл. Работает на X11.</td>
+                            <td>Программисты, сисадмины, ценители эффективности.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sway</strong></td>
+                            <td>Плиточный (Tiling)</td>
+                            <td>Полный клон i3, но работающий нативно на <strong>Wayland</strong>.Drop-in замена для i3.</td>
+                            <td>Те же, что и i3, но для пользователей Wayland.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Awesome</strong></td>
+                            <td>Плиточный (Dynamic)</td>
+                            <td>Высококонфигурируемый WM на <strong>Lua</strong>. Позволяет создавать сложные динамические макеты.</td>
+                            <td>Пользователи, готовые писать скрипты на Lua для уникальной настройки.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Openbox</strong></td>
+                            <td>Стековый (Floating)</td>
+                            <td>Легкий менеджер, окна плавают как в Windows. Конфиг через XML. Часто используется в минималистичных сборках.</td>
+                            <td>Старые ПК или создание собственной легковесной среды (с панелью tint2).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fluxbox</strong></td>
+                            <td>Стековый (Floating)</td>
+                            <td>Потомок Blackbox. Очень быстрый, настраивается через текстовые файлы.</td>
+                            <td>Максимальная скорость на устаревшем оборудовании.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>dwm</strong></td>
+                            <td>Плиточный (Tiling)</td>
+                            <td>От сообщества suckless.org. Минимализм. Настраивается через <strong>редактирование исходного кода на C</strong> и перекомпиляцию.</td>
+                            <td>Энтузиасты, желающие полный контроль над каждой строчкой кода.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Qtile</strong></td>
+                            <td>Плиточный (Tiling)</td>
+                            <td>Написан и настраивается на <strong>Python</strong>.</td>
+                            <td>Python-разработчики и все, кто хочет легко модифицировать WM.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hyprland</strong></td>
+                            <td>Плиточный (Wayland)</td>
+                            <td>Современный композитор с динамическими макетами, <strong>плавными анимациями</strong> и эффектами.</td>
+                            <td>Пользователи, желающие красоты Wayland + эффективности тайлинга.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>bspwm</strong></td>
+                            <td>Плиточный (Tiling)</td>
+                            <td>Управляет только окнами. Всё остальное (панели, хоткеи) делегируется внешним утилитам (polybar, sxhkd).</td>
+                            <td>Любители модульного подхода (Unix-way).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>JWM</strong></td>
+                            <td>Стековый (Floating)</td>
+                            <td>Очень лёгкий менеджер на C. Используется в Puppy Linux, Besgnulinux.</td>
+                            <td>Системы с крайне ограниченными ресурсами.</td>
+                        </tr>
+                    </table>
+
+                    <div class="info-box note">
+                        <div class="info-box-title">🧩 Как это собрать?</div>
+                        <p>Типичная сборка на базе WM выглядит так: <br>
+                        <code>WM (i3/Sway)</code> + <code>Панель (Polybar/Waybar)</code> + <code>Лаунчер (Rofi/Wofi)</code> + <code>Терминал (Kitty/Alacritty)</code> + <code>Обои (Nitrogen/Swaybg)</code>.</p>
+                    </div>
+                </div>
+
+                <!-- SECTION: X11 vs Wayland -->
+                <div id="x11-wayland" class="section">
+                    <div class="breadcrumb">Главная / Графика / <span>X11 vs Wayland</span></div>
+                    <h1>🔄 X11 vs Wayland</h1>
+                    
+                    <p>В мире Linux происходит тихая революция — переход от старого протокола X11 к современному Wayland. Это важное изменение, которое влияет на производительность, безопасность и совместимость.</p>
+
+                    <h2>Сравнение протоколов</h2>
+                    <table>
+                        <tr>
+                            <th>Характеристика</th>
+                            <th>X11 (Xorg)</th>
+                            <th>Wayland</th>
+                        </tr>
+                        <tr>
+                            <td>Возраст</td>
+                            <td>35+ лет (1987)</td>
+                            <td>10+ лет (2012)</td>
+                        </tr>
+                        <tr>
+                            <td>Архитектура</td>
+                            <td>Клиент-сервер</td>
+                            <td>Композитор = сервер</td>
+                        </tr>
+                        <tr>
+                            <td>Безопасность</td>
+                            <td>Низкая (кейлоггеры возможны)</td>
+                            <td>Высокая (изоляция приложений)</td>
+                        </tr>
+                        <tr>
+                            <td>Производительность</td>
+                            <td>Средняя</td>
+                            <td>Высокая (меньше копирований)</td>
+                        </tr>
+                        <tr>
+                            <td>Мультимонитор</td>
+                            <td>Проблемы с разным DPI</td>
+                            <td>Отличная поддержка</td>
+                        </tr>
+                        <tr>
+                            <td>Совместимость</td>
+                            <td>Полная</td>
+                            <td>Растущая (XWayland)</td>
+                        </tr>
+                    </table>
+
+                    <h2>Как проверить свой протокол?</h2>
+                    <pre><code>echo $XDG_SESSION_TYPE</code></pre>
+                    <p>Вернёт <code>x11</code> или <code>wayland</code>.</p>
+
+                    <div class="info-box note">
+                        <div class="info-box-title">📊 Текущее состояние (2026)</div>
+                        <p>Fedora, Ubuntu, Debian по умолчанию используют Wayland. Некоторые приложения (особенно для записи экрана и удалённого доступа) могут работать некорректно. XWayland обеспечивает совместимость со старыми X11 приложениями.</p>
+                    </div>
+
+                    <h2>Рекомендации</h2>
+                    <ul>
+                        <li><strong>Для новых систем:</strong> Используйте Wayland по умолчанию</li>
+                        <li><strong>Для игр:</strong> Wayland показывает лучшую производительность в большинстве случаев</li>
+                        <li><strong>Для записи экрана:</strong> Может потребоваться X11 (ситуация улучшается)</li>
+                        <li><strong>Для NVIDIA:</strong> Wayland теперь хорошо поддерживается (драйверы 555+)</li>
+                    </ul>
+                </div>
+
+                <!-- SECTION: UNIX FAMILY -->
+                <div id="unix-family" class="section">
+                    <div class="breadcrumb">Главная / Экосистема / <span>Семейство Unix</span></div>
+                    <h1>🌳 Семейство Unix</h1>
+                    
+                    <h2>Определения</h2>
+                    <ul>
+                        <li><strong>Unix</strong> — Операционная система, разработанная в Bell Labs в 1969. Сейчас торговая марка принадлежит The Open Group.</li>
+                        <li><strong>Unix-подобные (Unix-like)</strong> — Системы, которые ведут себя как Unix, но не обязательно имеют сертификат.</li>
+                        <li><strong>POSIX</strong> — Стандарт, определяющий совместимость с Unix.</li>
+                    </ul>
+
+                    <h2>Дерево Unix</h2>
+                    <pre><code>                    Unix (1969, Bell Labs)
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+    System V          BSD (1977)        Commercial Unix
+        │                  │                  │
+    ┌───┴───┐        ┌─────┴─────┐      ┌──────┴──────┐
+    │       │        │           │      │             │
+  AIX   HP-UX    FreeBSD    OpenBSD  Solaris    macOS
+                                    (Illumos)  (Darwin)</code></pre>
+
+                    <h2>Сертифицированные Unix системы</h2>
+                    <table>
+                        <tr>
+                            <th>Система</th>
+                            <th>Разработчик</th>
+                            <th>Статус</th>
+                        </tr>
+                        <tr>
+                            <td><strong>AIX</strong></td>
+                            <td>IBM</td>
+                            <td>Активно (Power серверы)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>HP-UX</strong></td>
+                            <td>Hewlett-Packard</td>
+                            <td>Поддержка</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Solaris</strong></td>
+                            <td>Oracle</td>
+                            <td>Коммерческий</td>
+                        </tr>
+                        <tr>
+                            <td><strong>macOS</strong></td>
+                            <td>Apple</td>
+                            <td>Активно (UNIX 03)</td>
+                        </tr>
+                    </table>
+
+                    <div class="info-box note">
+                        <div class="info-box-title">🏷️ Почему Linux не сертифицирован?</div>
+                        <p>Сертификация Unix стоит денег ($500,000+). Linux-сообщество не видит смысла платить за сертификат, когда система и так совместима. Технически Linux — Unix-like, но функционально эквивалентен Unix.</p>
+                    </div>
+                </div>
+
+                <!-- SECTION: BSD & MACOS -->
+                <div id="bsd-macos" class="section">
+                    <div class="breadcrumb">Главная / Экосистема / <span>BSD и macOS</span></div>
+                    <h1>🍎 BSD системы и macOS</h1>
+                    
+                    <h2>Что такое BSD?</h2>
+                    <p><strong>Berkeley Software Distribution (BSD)</strong> — это операционная система, произошедшая непосредственно от оригинального Unix из Bell Labs. В отличие от Linux (который является только ядром), BSD-системы распространяются как целостные ОС.</p>
+
+                    <div class="info-box tip">
+                        <div class="info-box-title">💡 Ключевое отличие</div>
+                        <p>Linux = ядро + отдельные пакеты от разных разработчиков. BSD = единая команда разрабатывает ядро, драйверы и утилиты вместе в одном репозитории.</p>
+                    </div>
+
+                    <h2>Основные ветви BSD</h2>
+                    <table>
+                        <tr>
+                            <th>Система</th>
+                            <th>Фокус</th>
+                            <th>Особенности</th>
+                        </tr>
+                        <tr>
+                            <td><strong>FreeBSD</strong></td>
+                            <td>Производительность</td>
+                            <td>Стабильность, сеть, ZFS. Netflix использует для CDN.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>OpenBSD</strong></td>
+                            <td>Безопасность</td>
+                            <td>Аудит кода, криптография. "Только 2 дыры по умолчанию".</td>
+                        </tr>
+                        <tr>
+                            <td><strong>NetBSD</strong></td>
+                            <td>Портативность</td>
+                            <td>"Конечно, это работает на NetBSD". Работает на тостерах.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>DragonFly BSD</strong></td>
+                            <td>Инновации</td>
+                            <td>HAMMER ФС, масштабируемость многоядерных систем.</td>
+                        </tr>
+                    </table>
+
+                    <h2>macOS и BSD</h2>
+                    <p>macOS — это уникальная система. Её ядро называется <strong>Darwin</strong>, которое основано на <strong>FreeBSD</strong> и Mach (микроядро).</p>
+                    
+                    <h3>Почему macOS считается Unix?</h3>
+                    <ul>
+                        <li>Прошла сертификацию The Open Group как UNIX 03</li>
+                        <li>Терминал практически идентичен Linux/BSD (zsh/bash)</li>
+                        <li>Структура ФС (/bin, /etc, /usr, /var) соответствует стандарту Unix</li>
+                        <li>Большинство Linux-команд работают идентично</li>
+                    </ul>
+
+                    <div class="philosophy-box">
+                        <h3>🎯 macOS для разработчиков</h3>
+                        <p>Mac популярен среди веб-разработчиков именно потому, что сочетает Unix-терминал (как Linux) с коммерческим софтом (Adobe, Office). Вы получаете лучшее из обоих миров: мощь командной строки и удобство проприетарных приложений.</p>
+                    </div>
+                </div>
+
+                <!-- SECTION: DISTRIBUTIONS -->
+                <div id="distributions" class="section">
+                    <div class="breadcrumb">Главная / Экосистема / <span>Дистрибутивы 2026</span></div>
+                    <h1>📀 Актуальные дистрибутивы Linux (2026)</h1>
+                    
+                    <p>Мир дистрибутивов постоянно меняется. Ниже представлен обновлённый список популярных дистрибутивов на 2026 год, включая новые звезды вроде CachyOS и специализированные сборки.</p>
+
+                    <h2>Популярные дистрибутивы</h2>
+                    <table>
+                        <tr>
+                            <th>Дистрибутив</th>
+                            <th>Краткое описание</th>
+                            <th>Для кого</th>
+                            <th>Почему популярен в 2026</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Linux Mint 22.x</strong></td>
+                            <td>Дружелюбный дистрибутив с Cinnamon, включает кодеки и инструменты резервного копирования.</td>
+                            <td>Новички, мигранты с Windows.</td>
+                            <td>Плавный и знакомый переход, отличная отправная точка.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Zorin OS 18</strong></td>
+                            <td>Ориентирован на удобство и знакомый интерфейс (Windows/macOS).</td>
+                            <td>Мигранты с Windows/macOS.</td>
+                            <td>Более 2 млн загрузок благодаря окончанию поддержки Win10.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ubuntu 24.04 LTS</strong></td>
+                            <td>Эталонный дистрибутив с поддержкой до 2036 года (Pro).</td>
+                            <td>Общие пользователи, предприятия.</td>
+                            <td>Надежность, стабильность, огромная экосистема.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fedora 42</strong></td>
+                            <td>Передовой дистрибутив с актуальным GNOME и Wayland.</td>
+                            <td>Разработчики, энтузиасты.</td>
+                            <td>Новейшие технологии без ожидания LTS.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Pop!_OS</strong></td>
+                            <td>Собственная среда COSMIC (Rust), отличная поддержка NVIDIA.</td>
+                            <td>Разработчики ML/AI, геймеры.</td>
+                            <td>Удобство для гибридных задач и инновационная COSMIC.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Arch / EndeavourOS</strong></td>
+                            <td>Роллинг-релиз, сборка системы "под себя" или упрощенный установщик.</td>
+                            <td>Продвинутые пользователи.</td>
+                            <td>Максимальная гибкость, свежесть софта, доступ к AUR.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>CachyOS</strong></td>
+                            <td>Arch с агрессивными оптимизациями (x86-64-v3/v4) и своим репозиторием.</td>
+                            <td>Геймеры, энтузиасты производительности.</td>
+                            <td>Заметный прирост скорости на современном железе, гибкость Arch.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bazzite / Nobara</strong></td>
+                            <td>Оптимизированы для игр. Bazzite имитирует SteamOS, Nobara имеет твики.</td>
+                            <td>Геймеры, владельцы портативок.</td>
+                            <td>Минимум настроек для максимума FPS, поддержка Steam.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Debian 13 "Trixie"</strong></td>
+                            <td>Эталон стабильности, основа для многих дистрибутивов.</td>
+                            <td>Серверы, enterprise.</td>
+                            <td>Бескомпромиссная надежность (релиз авг 2025).</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AerynOS</strong></td>
+                            <td>Атомарный дистрибутив с ванильным KDE Plasma и откатами.</td>
+                            <td>Ценители надежности.</td>
+                            <td>Атомарные обновления исключают поломку системы.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AnduinOS</strong></td>
+                            <td>Ubuntu-база с интерфейсом, копирующим Windows 10.</td>
+                            <td>Мигранты с Windows.</td>
+                            <td>Визуальная копия Win10, не собирает данные.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Besgnulinux</strong></td>
+                            <td>Легковесный Debian stable с оконным менеджером JWM.</td>
+                            <td>Владельцы старых ПК (2GB RAM).</td>
+                            <td>Возвращает к жизнь устаревшие компьютеры.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>BigLinux</strong></td>
+                            <td>Красивый Manjaro (Arch) с KDE Plasma и веб-приложениями.</td>
+                            <td>Пользователи Arch, ищущие удобство.</td>
+                            <td>Мощь Arch с невероятным удобством "из коробки".</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Elementary OS 8</strong></td>
+                            <td>Элегантный минимализм с собственной средой Pantheon.</td>
+                            <td>Ценители эстетики.</td>
+                            <td>Чистый дизайн в стиле macOS, фокус на визуальной целостности.</td>
+                        </tr>
+                    </table>
+
+                    <div class="info-box tip">
+                        <div class="info-box-title">💡 Какой дистрибутив выбрать?</div>
+                        <ul>
+                            <li><strong>Новичок:</strong> Linux Mint, Zorin OS, Ubuntu</li>
+                            <li><strong>Геймер:</strong> Nobara, Bazzite, Pop!_OS, CachyOS</li>
+                            <li><strong>Разработчик:</strong> Fedora, Pop!_OS, Arch/Endeavour</li>
+                            <li><strong>Старый ПК:</strong> Besgnulinux, Lubuntu, MX Linux</li>
+                            <li><strong>Сервер:</strong> Debian, Rocky Linux, Ubuntu Server</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- SECTION: PERMISSIONS -->
+                <div id="permissions" class="section">
+                    <div class="breadcrumb">Главная / Продвинутое / <span>Права доступа</span></div>
+                    <h1>🔐 Права доступа</h1>
+                    
+                    <p>Система прав доступа — фундамент безопасности Linux. Понимание <code>chmod</code> и <code>chown</code> критически важно для любого пользователя.</p>
+
+                    <h2>Структура прав</h2>
+                    <pre><code>-rwxr-xr--  1 user  group  4096 Oct 25 10:00 file.txt
+│││││││││
+││││││││└─── Другие (others): r-- (читать)
+││││││└───── Группа (group): r-x (читать+исполнять)
+││││└──────── Владелец (user): rwx (читать+писать+исполнять)
+│││└────────── Специальные биты (setuid, setgid, sticky)
+││└─────────── Тип файла (- файл, d директория, l ссылка)
+└────────────── Всего 10 символов</code></pre>
+
+                    <h2>Числовое представление</h2>
+                    <table>
+                        <tr>
+                            <th>Право</th>
+                            <th>Буква</th>
+                            <th>Число</th>
+                        </tr>
+                        <tr>
+                            <td>Чтение</td>
+                            <td>r</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <td>Запись</td>
+                            <td>w</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td>Исполнение</td>
+                            <td>x</td>
+                            <td>1</td>
+                        </tr>
+                    </table>
+
+                    <h2>Примеры использования chmod</h2>
+                    <pre><code><span class="terminal-comment"># Сделать файл исполняемым</span>
+chmod +x script.sh
+
+<span class="terminal-comment"># Полные права владельцу, чтение группе и другим</span>
+chmod 744 file.txt
+
+<span class="terminal-comment"># Стандартные права для скрипта</span>
+chmod 755 script.sh
+
+<span class="terminal-comment"># Только чтение для всех</span>
+chmod 444 file.txt
+
+<span class="terminal-comment"># Рекурсивно для папки</span>
+chmod -R 755 /path/to/folder</code></pre>
+
+                    <h2>chown — смена владельца</h2>
+                    <pre><code><span class="terminal-comment"># Сменить владельца</span>
+chown user file.txt
+
+<span class="terminal-comment"># Сменить владельца и группу</span>
+chown user:group file.txt
+
+<span class="terminal-comment"># Рекурсивно</span>
+chown -R user:group /path/to/folder</code></pre>
+
+                    <div class="info-box warning">
+                        <div class="info-box-title">⚠️ Критические права</div>
+                        <p>Никогда не делайте <code>chmod 777</code> на системные файлы или домашние директории. Это открывает доступ всем пользователям и является серьёзной уязвимостью безопасности.</p>
+                    </div>
+
+                    <h2>sudo — временные привилегии</h2>
+                    <pre><code><span class="terminal-comment"># Выполнить команду как root</span>
+sudo apt update
+
+<span class="terminal-comment"># Открыть оболочку root</span>
+sudo -i
+
+<span class="terminal-comment"># Выполнить команду от другого пользователя</span>
+sudo -u username command</code></pre>
+                </div>
+
+                <!-- SECTION: ROADMAP -->
+                <div id="roadmap" class="section">
+                    <div class="breadcrumb">Главная / Продвинутое / <span>Путь изучения</span></div>
+                    <h1>🗺️ Путь изучения Linux</h1>
+                    
+                    <p>Этот roadmap поможет вам структурировать обучение и прогрессировать от новичка до продвинутого пользователя.</p>
+
+                    <h2>Уровень 1: Выживание (The Survivor)</h2>
+                    <div class="info-box note">
+                        <div class="info-box-title">📋 Цели</div>
+                        <ul>
+                            <li>Установить Linux на виртуальную машину (VirtualBox/VMware)</li>
+                            <li>Научиться обновлять систему</li>
+                            <li>Не бояться терминала</li>
+                            <li>Понимать базовую структуру ФС</li>
+                        </ul>
+                    </div>
+                    <h3>Команды для изучения</h3>
+                    <code>ls</code> <code>cd</code> <code>pwd</code> <code>cp</code> <code>mv</code> <code>rm</code> <code>mkdir</code> <code>sudo</code> <code>apt/dnf/pacman</code>
+
+                    <h2>Уровень 2: Навигатор (The Navigator)</h2>
+                    <div class="info-box note">
+                        <div class="info-box-title">📋 Цели</div>
+                        <ul>
+                            <li>Перемещаться по ФС без мыши</li>
+                            <li>Понимать права доступа</li>
+                            <li>Работать с текстовыми редакторами (nano, vim)</li>
+                            <li>Использовать конвейеры</li>
+                        </ul>
+                    </div>
+                    <h3>Команды для изучения</h3>
+                    <code>grep</code> <code>find</code> <code>chmod</code> <code>chown</code> <code>vim/nano</code> <code>man</code> <code>history</code> <code>pipe |</code>
+
+                    <h2>Уровень 3: Архитектор (The Architect)</h2>
+                    <div class="info-box note">
+                        <div class="info-box-title">📋 Цели</div>
+                        <ul>
+                            <li>Настроить веб-сервер (Nginx/Apache)</li>
+                            <li>Автоматизировать задачи (cron, bash скрипты)</li>
+                            <li>Понимать процессы и сервисы</li>
+                            <li>Работать с сетью</li>
+                        </ul>
+                    </div>
+                    <h3>Команды для изучения</h3>
+                    <code>systemctl</code> <code>ps</code> <code>top/htop</code> <code>netstat/ss</code> <code>ssh</code> <code>crontab</code> <code>bash scripting</code>
+
+                    <h2>Уровень 4: Мастер (The Master)</h2>
+                    <div class="info-box note">
+                        <div class="info-box-title">📋 Цели</div>
+                        <ul>
+                            <li>Написать собственные скрипты и утилиты</li>
+                            <li>Оптимизировать производительность системы</li>
+                            <li>Понимать ядро и модули</li>
+                            <li>Администрировать серверы в продакшене</li>
+                        </ul>
+                    </div>
+                    <h3>Темы для изучения</h3>
+                    <code>Kernel tuning</code> <code>Security hardening</code> <code>Containerization</code> <code>CI/CD</code> <code>Monitoring</code>
+
+                    <div class="philosophy-box">
+                        <h3>🎯 Главный совет</h3>
+                        <p><strong>Не бойтесь сломать систему.</strong> Установите Linux на виртуальную машину, попробуйте удалить критический файл, посмотрите на ошибку, восстановите из снапшота. Именно на ошибках мы учимся лучше всего. Каждая поломка — это урок, который сделает вас сильнее.</p>
+                    </div>
+
+                    <div class="quick-tips">
+                        <h4>📚 Ресурсы для дальнейшего обучения</h4>
+                        <ul>
+                            <li><strong>man pages</strong> — Встроенная документация (man ls)</li>
+                            <li><strong>tldr</strong> — Упрощённые страницы руководства</li>
+                            <li><strong>Arch Wiki</strong> — Лучшая документация, даже для не-Arch</li>
+                            <li><strong>Linux Journey</strong> — Интерактивное обучение</li>
+                            <li><strong>OverTheWire</strong> — Игры для изучения безопасности</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // --- Navigation State ---
+        let currentSection = 'intro';
+        const totalSections = 16; // Updated count
+        let visitedSections = new Set(['intro']);
+
+        // --- Section Display Function ---
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Show target section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                currentSection = sectionId;
+                
+                // Track progress
+                visitedSections.add(sectionId);
+                updateProgress();
+            }
+
+            // Highlight active nav item
+            const activeButton = document.querySelector(`.nav-item[onclick="showSection('${sectionId}')"]`);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+
+            // Scroll content to top
+            document.getElementById('contentArea').scrollTop = 0;
+
+            // Close mobile sidebar if open
+            if (window.innerWidth <= 900) {
+                toggleSidebar();
+            }
+
+            // Update breadcrumb
+            updateBreadcrumb(sectionId);
+        }
+
+        // --- Progress Tracking ---
+        function updateProgress() {
+            const percent = Math.round((visitedSections.size / totalSections) * 100);
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('progressPercent').textContent = percent;
+        }
+
+        // --- Breadcrumb Update ---
+        function updateBreadcrumb(sectionId) {
+            const sectionNames = {
+                'intro': 'Введение',
+                'history': 'История Linux',
+                'philosophy': 'Философия Unix',
+                'filesystems': 'Файловые системы',
+                'terminal': 'Терминал и команды',
+                'pipes': 'Конвейеры',
+                'archives': 'Архивы',
+                'gui': 'Среды (DE)',
+                'window-managers': 'Оконные менеджеры',
+                'x11-wayland': 'X11 vs Wayland',
+                'unix-family': 'Семейство Unix',
+                'bsd-macos': 'BSD и macOS',
+                'distributions': 'Дистрибутивы 2026',
+                'permissions': 'Права доступа',
+                'roadmap': 'Путь изучения'
+            };
+
+            const breadcrumb = document.querySelector('.breadcrumb');
+            if (breadcrumb && sectionNames[sectionId]) {
+                breadcrumb.innerHTML = `Главная / <span>${sectionNames[sectionId]}</span>`;
+            }
+        }
+
+        // --- Mobile Sidebar Toggle ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        }
+
+        // --- Search Functionality ---
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            if (searchTerm.length < 2) {
+                // Clear highlights
+                document.querySelectorAll('.search-highlight').forEach(el => {
+                    el.outerHTML = el.innerHTML;
+                });
+                return;
+            }
+
+            // Search in current section
+            const currentContent = document.querySelector(`#${currentSection}`);
+            if (currentContent) {
+                highlightText(currentContent, searchTerm);
+            }
+        });
+
+        function highlightText(element, term) {
+            // Remove existing highlights
+            document.querySelectorAll('.search-highlight').forEach(el => {
+                el.outerHTML = el.innerHTML;
+            });
+
+            const walker = document.createTreeWalker(
+                element,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+
+            const nodes = [];
+            while (walker.nextNode()) {
+                nodes.push(walker.currentNode);
+            }
+
+            nodes.forEach(node => {
+                if (node.nodeValue.toLowerCase().includes(term)) {
+                    const span = document.createElement('span');
+                    span.innerHTML = node.nodeValue.replace(
+                        new RegExp(`(${term})`, 'gi'),
+                        '<mark class="search-highlight">$1</mark>'
+                    );
+                    node.parentNode.replaceChild(span, node);
+                }
+            });
+        }
+
+        // --- Interactive Terminal Simulator ---
+        const terminalInput = document.getElementById('terminalInput');
+        const terminalBody = document.getElementById('terminalBody');
+
+        if (terminalInput) {
+            terminalInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const command = this.value.trim();
+                    processTerminalCommand(command);
+                    this.value = '';
+                }
+            });
+        }
+
+        function processTerminalCommand(command) {
+            const outputDiv = document.createElement('div');
+            outputDiv.className = 'terminal-output';
+            
+            const parts = command.split(' ');
+            const cmd = parts[0];
+            const args = parts.slice(1);
+
+            let output = '';
+
+            switch(cmd) {
+                case 'help':
+                    output = 'Доступные команды: ls, pwd, cd, cat, echo, clear, whoami, date';
+                    break;
+                case 'ls':
+                    output = 'Documents  Downloads  Pictures  Music  Videos  file.txt  script.sh';
+                    break;
+                case 'pwd':
+                    output = '/home/user';
+                    break;
+                case 'whoami':
+                    output = 'user';
+                    break;
+                case 'date':
+                    output = new Date().toString();
+                    break;
+                case 'echo':
+                    output = args.join(' ');
+                    break;
+                case 'cat':
+                    if (args[0] === 'file.txt') {
+                        output = 'Это пример содержимого файла.\nВторая строка текста.';
+                    } else {
+                        output = `cat: ${args[0] || ''}: Нет такого файла или каталога`;
+                    }
+                    break;
+                case 'cd':
+                    output = `Переход в ${args[0] || '~'}...`;
+                    break;
+                case 'clear':
+                    terminalBody.innerHTML = '<div class="terminal-input-line"><span class="terminal-prompt-text">user@linux:~$</span><input type="text" class="terminal-input" id="terminalInput" autofocus></div>';
+                    document.getElementById('terminalInput').addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            const command = this.value.trim();
+                            processTerminalCommand(command);
+                            this.value = '';
+                        }
+                    });
+                    return;
+                case '':
+                    output = '';
+                    break;
+                default:
+                    output = `${cmd}: команда не найдена. Введите 'help' для списка команд.`;
+            }
+
+            if (output) {
+                const prevInput = terminalBody.querySelector('.terminal-input-line');
+                const outputElement = document.createElement('div');
+                outputElement.className = 'terminal-output';
+                outputElement.textContent = output;
+                terminalBody.insertBefore(outputElement, prevInput);
+            }
+
+            // Scroll to bottom
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+        }
+
+        // --- Keyboard Navigation ---
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+K for search
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('searchBox').focus();
+            }
+        });
+
+        // --- Initialize ---
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+            
+            // Focus terminal input when section is shown
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'class') {
+                        const section = mutation.target;
+                        if (section.classList.contains('active') && section.id === 'terminal') {
+                            const input = document.getElementById('terminalInput');
+                            if (input) input.focus();
+                        }
+                    }
+                });
+            });
+
+            document.querySelectorAll('.section').forEach(section => {
+                observer.observe(section, { attributes: true });
+            });
+        });
+
+        // --- Save Progress to localStorage ---
+        function saveProgress() {
+            localStorage.setItem('linuxGuideProgress', JSON.stringify([...visitedSections]));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('linuxGuideProgress');
+            if (saved) {
+                visitedSections = new Set(JSON.parse(saved));
+                updateProgress();
+            }
+        }
+
+        // Auto-save progress every 30 seconds
+        setInterval(saveProgress, 30000);
+        loadProgress();
+    </script>
+</body>
+</html>
